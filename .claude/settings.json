@@ -1,0 +1,14 @@
+{
+  "commands": {
+    "daily-news": {
+      "description": "Generate daily tech news digest PDF",
+      "file": ".claude/commands/daily-news.md"
+    }
+  },
+  "skills": {
+    "daily-news": {
+      "description": "Generate daily tech news digest PDF from multiple sources",
+      "file": ".claude/skills/daily-news/SKILL.md"
+    }
+  }
+}

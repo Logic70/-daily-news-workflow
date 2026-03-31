@@ -1,0 +1,92 @@
+{
+  "version": "1.0.0",
+  "sources": {
+    "rss": [
+      {
+        "name": "TechCrunch",
+        "url": "https://techcrunch.com/feed/",
+        "language": "en",
+        "priority": "high",
+        "max_items": 10
+      },
+      {
+        "name": "The Verge",
+        "url": "https://www.theverge.com/rss/index.xml",
+        "language": "en",
+        "priority": "high",
+        "max_items": 10
+      },
+      {
+        "name": "36氪",
+        "url": "https://36kr.com/feed",
+        "language": "zh",
+        "priority": "high",
+        "max_items": 10
+      }
+    ],
+    "api": {
+      "newsapi": {
+        "endpoint": "https://newsapi.org/v2/everything",
+        "params": {
+          "q": "technology OR AI OR artificial intelligence",
+          "language": "en",
+          "sortBy": "publishedAt",
+          "pageSize": 20
+        },
+        "enabled": true
+      }
+    },
+    "web": [
+      {
+        "name": "TechCrunch",
+        "url": "https://techcrunch.com",
+        "selector": "article h2 a",
+        "priority": "medium",
+        "max_items": 5
+      }
+    ]
+  },
+  "filtering": {
+    "max_output": 20,
+    "min_relevance": 0.3,
+    "key_entities": {
+      "companies": [
+        "Apple", "Microsoft", "Google", "Amazon", "Meta", "Tesla", "NVIDIA",
+        "OpenAI", "Anthropic", "字节跳动", "阿里巴巴", "腾讯", "华为",
+        "小米", "百度", "京东"
+      ],
+      "people": [
+        "Elon Musk", "Satya Nadella", "Tim Cook", "Sundar Pichai",
+        "Mark Zuckerberg", "Sam Altman", "Demis Hassabis",
+        "黄仁勋", "马云", "马化腾", "李彦宏"
+      ],
+      "technologies": [
+        "AI", "人工智能", "LLM", "大模型", "ChatGPT", "Claude", "GPT",
+        "机器学习", "深度学习", "区块链", "Web3", "元宇宙", "AR", "VR"
+      ]
+    },
+    "scoring": {
+      "title_entity": 0.4,
+      "content_entity": 0.2,
+      "top_company": 0.2,
+      "ai_keyword": 0.1,
+      "freshness": 0.1
+    }
+  },
+  "output": {
+    "pdf_filename": "tech-news-digest-{date}.pdf",
+    "default_output_dir": "./output",
+    "cache_dir": "./cache",
+    "log_dir": "./logs",
+    "max_file_size_mb": 10
+  },
+  "schedule": {
+    "auto_trigger": true,
+    "cron": "0 9 * * *",
+    "timezone": "Asia/Shanghai"
+  },
+  "retry": {
+    "max_retries": 2,
+    "backoff_seconds": 5
+  }
+}
