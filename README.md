@@ -42,56 +42,39 @@
 - 📄 **网页版**: https://Logic70.github.io/-daily-news-workflow/
 - 📡 **RSS订阅**: https://Logic70.github.io/-daily-news-workflow/rss.xml
 
-### 方式二：Claude Code 交互（开发/调试）
+### 方式二：Claude Code 辅助（开发/调试）
 
-本仓库包含 `.claude/` 结构，可在 [Claude Code](https://claude.ai/code) 中打开并调用命令：
+本仓库包含 `.claude/` 结构，表示它是一个可被 [WorkflowProgram-CN](https://github.com/Logic70/WorkflowProgram-CN) 识别和演进的工作流仓库。
 
-**1. 加载仓库**
+**在 Claude Code 中使用：**
 
 ```bash
-# 在终端中克隆仓库
-git clone https://github.com/Logic70/-daily-news-workflow.git
-cd -daily-news-workflow
-
-# 在 Claude Code 中打开（如果使用桌面应用或 CLI）
+# 在终端中打开仓库
+cd /path/to/daily-news-workflow
 claude
 ```
 
-或在 VS Code 等 IDE 中打开仓库，Claude Code 扩展会自动识别 `.claude/settings.json`。
+在 Claude Code 中，你可以：
 
-**2. 可用命令**
+1. **直接运行脚本**（推荐）
+   ```text
+   User: 运行脚本收集今天的新闻
+   Claude: 执行 python scripts/fetch-news.py...
+   ```
 
-在 Claude Code 对话中输入：
+2. **查看和编辑文件**
+   ```text
+   User: 查看 cache/daily-news.json 的内容
+   Claude: 显示文件内容...
+   ```
 
-| 命令 | 功能 |
-|------|------|
-| `/fetch-news` | 手动触发新闻收集（可指定日期） |
-| `/preview-news` | 预览今天的新闻摘要 |
-| `/deploy-status` | 检查 GitHub Actions 部署状态 |
-| `/configure` | 交互式配置 API Key |
+3. **调试问题**
+   ```text
+   User: 为什么 RSS 收集失败？
+   Claude: 检查代码，发现...
+   ```
 
-**示例对话**：
-
-```text
-User: /fetch-news --date 2026-03-31
-Claude: 正在收集 2026-03-31 的新闻...
-       ✓ RSS 源: 12 条
-       ✓ NewsAPI: 8 条
-       ✓ GitHub Trending: 5 条
-       已生成 cache/daily-news.json
-
-User: /preview-news
-Claude: 今日新闻预览（共 20 条）：
-       1. [AI] OpenAI 发布 GPT-5... (0.95)
-       2. [Tech] Google 推出新功能... (0.92)
-       ...
-
-User: /deploy-status
-Claude: GitHub Actions 状态:
-       - 最新运行: #42 (2 hours ago) - ✅ success
-       - GitHub Pages: 已部署
-       - URL: https://Logic70.github.io/-daily-news-workflow/
-```
+**注意**：`.claude/commands/` 中的命令定义是**设计文档**，展示工作流的阶段结构，不会自动注册为 Claude Code 的 `/` 命令。
 
 ### 方式三：本地命令行运行
 
@@ -134,19 +117,15 @@ cp .env.example .env
 ## 📁 项目结构
 
 ```
-├── .claude/                    # Claude Code 工作流配置
-│   ├── commands/               # Claude Code 可调用命令
-│   │   ├── fetch-news.md       # /fetch-news 命令
-│   │   ├── preview-news.md     # /preview-news 命令
-│   │   ├── deploy-status.md    # /deploy-status 命令
-│   │   └── configure.md        # /configure 命令
-│   ├── skills/                 # 技能模板
-│   └── settings.json           # Claude Code 命令注册表
+├── .claude/                    # Claude Code 工作流标记（可被 WorkflowProgram-CN 演进）
+│   ├── commands/               # 命令设计文档（展示工作流阶段结构）
+│   ├── skills/                 # 技能定义
+│   └── settings.json           # 工作流元数据
 │
-├── .github/workflows/          # GitHub Actions 工作流
-│   └── daily-news.yml          # 每日自动运行
+├── .github/workflows/          # GitHub Actions 工作流（实际自动运行）
+│   └── daily-news.yml          # 每日 UTC 01:00 自动运行
 │
-├── scripts/                    # 核心脚本（被 Claude 命令调用）
+├── scripts/                    # 核心脚本（本地运行或 Claude 辅助调试）
 │   ├── fetch-news.py           # 新闻收集（RSS/API/GitHub/HF）
 │   ├── generate-all.py         # 多格式生成器
 │   ├── generate-html.py        # HTML生成
@@ -171,8 +150,7 @@ cp .env.example .env
 
 | 文件 | 作用 |
 |------|------|
-| `.claude/settings.json` | Claude Code 命令注册表，定义可用的 `/` 命令 |
-| `.claude/commands/*.md` | 各命令的具体实现和流程定义 |
+| `.claude/` | **工作流标记**：表示这是一个可被 WorkflowProgram-CN 审计和演进的标准工作流仓库 |
 | `scripts/fetch-news.py` | 新闻收集主程序，支持4种数据源 |
 | `scripts/generate-all.py` | 多格式输出，一次生成所有文件 |
 | `.github/workflows/daily-news.yml` | GitHub Actions 定时任务（每日 UTC 01:00） |
