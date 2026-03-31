@@ -10,24 +10,27 @@ on:
         description: '指定日期 (YYYY-MM-DD)'
         required: false
         default: ''
+  push:
+    branches: [ main, master ]
 
+# 设置权限
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
+# 并发控制
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  generate:
+  # 构建任务
+  build:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -43,38 +46,27 @@ jobs:
       env:
         NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
       run: |
+        mkdir -p docs cache
         if [ -n "${{ github.event.inputs.date }}" ]; then
           python scripts/fetch-news.py --date ${{ github.event.inputs.date }} --output cache/daily-news.json
         else
           python scripts/fetch-news.py --output cache/daily-news.json
         fi
-        python scripts/generate-all.py --input cache/daily-news.json --output-dir docs/
-
-    - name: Setup Pages
-      uses: actions/configure-pages@v4
+        python scripts/generate-all.py --input cache/daily-news.json --output-dir docs --summary
 
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
         path: 'docs'
 
+  # 部署任务
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
-
-    - name: Archive to backup branch
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-
-        # 创建备份目录
-        DATE=$(date +%Y-%m-%d)
-        mkdir -p archive/$DATE
-        cp cache/daily-news.json archive/$DATE/
-        cp docs/index.md archive/$DATE/ 2>/dev/null || true
-
-        # 提交到 archive 分支
-        git checkout -b archive-$DATE || git checkout archive-$DATE
-        git add archive/
-        git commit -m "Archive news for $DATE" || echo "No changes to commit"
-        git push origin archive-$DATE || echo "Push failed"
