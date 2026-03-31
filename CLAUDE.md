@@ -2,6 +2,19 @@
 
 每天自动收集科技新闻，生成多格式输出（HTML / Markdown / RSS），支持 GitHub Actions 自动化部署。
 
+> **Code Agent 工作流**: 本仓库包含 `.claude/` 结构，可被 Claude Code 识别和调用。
+
+## Claude Code 命令
+
+在 Claude Code 中打开本仓库后，可使用以下命令：
+
+| 命令 | 说明 |
+|------|------|
+| `/fetch-news` | 手动触发新闻收集 |
+| `/preview-news` | 预览今天的新闻摘要 |
+| `/deploy-status` | 检查 Actions 部署状态 |
+| `/configure` | 配置 API Key 和设置 |
+
 ## 功能
 
 - **多源收集**: RSS、NewsAPI、GitHub Trending、HuggingFace
@@ -52,7 +65,10 @@ open docs/index.html
 
 ```
 daily-news-workflow/
-├── .claude/              # Claude Code 配置
+├── .claude/              # Claude Code 工作流配置
+│   ├── commands/         # 可调用命令（fetch-news, preview-news 等）
+│   ├── skills/           # 技能定义
+│   └── settings.json     # 命令注册表
 ├── .github/workflows/    # GitHub Actions
 ├── scripts/
 │   ├── fetch-news.py     # 新闻收集

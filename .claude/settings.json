@@ -1,14 +1,26 @@
 {
   "commands": {
-    "daily-news": {
-      "description": "Generate daily tech news digest PDF",
-      "file": ".claude/commands/daily-news.md"
+    "fetch-news": {
+      "description": "手动触发新闻收集（本地运行）",
+      "file": ".claude/commands/fetch-news.md"
+    },
+    "preview-news": {
+      "description": "预览今天的新闻摘要",
+      "file": ".claude/commands/preview-news.md"
+    },
+    "deploy-status": {
+      "description": "检查 GitHub Actions 部署状态",
+      "file": ".claude/commands/deploy-status.md"
+    },
+    "configure": {
+      "description": "配置 API Key 和基本设置",
+      "file": ".claude/commands/configure.md"
     }
   },
   "skills": {
-    "daily-news": {
-      "description": "Generate daily tech news digest PDF from multiple sources",
-      "file": ".claude/skills/daily-news/SKILL.md"
+    "news-collector": {
+      "description": "新闻收集核心技能",
+      "file": ".claude/skills/news-collector/SKILL.md"
     }
   }
 }
