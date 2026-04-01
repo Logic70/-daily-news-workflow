@@ -2,21 +2,28 @@
 
 每天自动收集科技新闻，生成多格式输出（HTML / Markdown / RSS），支持 GitHub Actions 自动化部署。
 
-> **Code Agent 工作流**: 本仓库包含 `.claude/` 结构，可被 Claude Code 识别和调用。
+> **Code Agent 工作流**: 本仓库包含 `.claude/` 结构，可被 WorkflowProgram-CN 识别和演进。
 
-## Claude Code 命令
+## Claude Code 集成说明
 
-在 Claude Code 中打开本仓库后，可使用以下命令：
+在 Claude Code 中打开本仓库后，可以通过**自然语言对话**协助调试和修改代码：
 
-| 命令 | 说明 |
-|------|------|
-| `/fetch-news` | 手动触发新闻收集 |
-| `/preview-news` | 预览今天的新闻摘要 |
-| `/deploy-status` | 检查 Actions 部署状态 |
-| `/configure` | 配置 API Key 和设置 |
+```bash
+# 在终端中打开仓库
+cd /path/to/daily-news-workflow
+claude
+```
+
+**使用示例**：
+- "运行脚本收集今天的新闻"
+- "查看 cache/daily-news.json 的内容"
+- "为什么 RSS 收集失败？"
+
+**注意**：`.claude/` 中的文件是设计文档，**不会**自动注册为 Claude Code 的 `/` 命令。
 
 ## 功能
 
+- **配置驱动**: 从 `config/news-sources.json` 读取源配置和筛选参数
 - **多源收集**: RSS、NewsAPI、GitHub Trending、HuggingFace
 - **智能翻译**: 自动将英文新闻翻译为中文
 - **内容筛选**: 基于关键实体计算相关性分数
@@ -35,7 +42,7 @@
 # 安装依赖
 pip install -r requirements.txt
 
-# 获取新闻（本地缓存）
+# 收集新闻（配置驱动）
 python scripts/fetch-news.py --output cache/news.json
 
 # 生成所有格式
@@ -52,6 +59,14 @@ open docs/index.html
 3. 在 Settings → Pages 选择 GitHub Actions 作为源
 4. 每天自动运行，输出到 GitHub Pages
 
+## 配置
+
+编辑 `config/news-sources.json` 自定义：
+- RSS 源列表（名称、URL、优先级、max_items）
+- 筛选实体（公司、人物、技术关键词）
+- 评分权重（title_entity、content_entity 等）
+- 输出目录（cache_dir、docs_dir）
+
 ## 数据源
 
 | 来源 | 类型 | 说明 |
@@ -65,20 +80,21 @@ open docs/index.html
 
 ```
 daily-news-workflow/
-├── .claude/              # Claude Code 工作流配置
-│   ├── commands/         # 可调用命令（fetch-news, preview-news 等）
+├── .claude/              # 工作流标记（可被 WorkflowProgram-CN 演进）
+│   ├── README.md         # .claude/ 目录说明
 │   ├── skills/           # 技能定义
 │   └── settings.json     # 命令注册表
 ├── .github/workflows/    # GitHub Actions
 ├── scripts/
-│   ├── fetch-news.py     # 新闻收集
+│   ├── fetch-news.py     # 新闻收集（配置驱动）
 │   ├── generate-all.py   # 多格式生成
 │   ├── generate-html.py  # HTML 生成
 │   ├── generate-rss.py   # RSS 生成
 │   └── generate-summary.py # AI 总结
+├── config/
+│   └── news-sources.json # 统一配置文件
 ├── docs/                 # 输出目录（GitHub Pages）
 ├── cache/                # 缓存
-├── fonts/                # 字体文件
 └── requirements.txt
 ```
 
@@ -93,7 +109,7 @@ daily-news-workflow/
 
 部署后，RSS 订阅地址：
 ```
-https://yourusername.github.io/daily-news-workflow/rss.xml
+https://Logic70.github.io/-daily-news-workflow/rss.xml
 ```
 
 ## License

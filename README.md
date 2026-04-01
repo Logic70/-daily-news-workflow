@@ -42,11 +42,42 @@
 - 📄 **网页版**: https://Logic70.github.io/-daily-news-workflow/
 - 📡 **RSS订阅**: https://Logic70.github.io/-daily-news-workflow/rss.xml
 
-### 方式二：Claude Code 辅助（开发/调试）
+### 方式二：GitHub Actions 自动执行
 
-本仓库包含 `.claude/` 结构，表示它是一个可被 [WorkflowProgram-CN](https://github.com/Logic70/WorkflowProgram-CN) 识别和演进的工作流仓库。
+Fork 本仓库后自动配置：
+1. 仓库 Settings → Pages → 选择 GitHub Actions 源
+2. （可选）Settings → Secrets → 添加 `NEWS_API_KEY`
+3. 每天 UTC 01:00 自动运行
 
-**在 Claude Code 中使用：**
+### 方式三：本地运行
+
+```bash
+# 安装依赖
+pip install -r requirements.txt
+
+# 收集新闻（自动读取 config/news-sources.json）
+python scripts/fetch-news.py --output cache/daily-news.json
+
+# 生成多格式输出
+python scripts/generate-all.py --input cache/daily-news.json --output-dir docs --summary
+```
+
+### 方式四：Claude Code 辅助（开发/调试）
+
+在 Claude Code 中打开本仓库，通过**自然语言对话**协助调试和修改代码。
+**注意**：`.claude/` 中的文件是设计文档，不会自动注册为 `/` 命令。
+
+---
+
+## ⚙️ 配置自定义
+
+编辑 `config/news-sources.json` 自定义：
+- **RSS 源列表**：添加/删除/修改 RSS 源
+- **筛选实体**：公司、人物、技术关键词
+- **评分权重**：调整相关性评分算法
+- **输出设置**：缓存目录、输出目录
+
+---
 
 ```bash
 # 在终端中打开仓库
