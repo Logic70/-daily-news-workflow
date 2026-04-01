@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import sys
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -258,6 +259,9 @@ class Translator:
 
             print("✓")
             translated_items.append(item)
+
+            # 速率控制：避免触发 Google Translate 频率限制
+            time.sleep(0.5)
 
         return translated_items
 

@@ -3,7 +3,9 @@
 生成极简主义风格的静态 HTML 新闻页面
 """
 import argparse
+import html
 import json
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -187,7 +189,6 @@ def generate_html(news_data, date_str):
     for item in news_data.get("items", []):
         # 截断内容
         content = item.get("description", "") or item.get("content", "")
-        import re
         content = re.sub(r"<[^>]+>", "", content)
         if len(content) > 250:
             content = content[:250] + "..."
@@ -196,21 +197,32 @@ def generate_html(news_data, date_str):
         entities = item.get("entities", [])
         tags_html = ""
         if entities:
-            tags_html = '<div class="tags">' + "".join([f'<span class="tag">{e}</span>' for e in entities[:3]]) + "</div>"
+            escaped_entities = [html.escape(str(e)) for e in entities[:3]]
+            tags_html = '<div class="tags">' + "".join([f'<span class="tag">{e}</span>' for e in escaped_entities]) + "</div>"
+
+        # 转义所有用户输入内容
+        title = html.escape(item.get("title", ""))
+        source = html.escape(item.get("source", ""))
+        relevance = str(item.get("relevance_score", 0))
+        content_escaped = html.escape(content)
+        link = html.escape(item.get("link", "#"))
 
         item_html = (NEWS_ITEM_TEMPLATE
-            .replace("{{title}}", item.get("title", ""))
-            .replace("{{source}}", item.get("source", ""))
-            .replace("{{relevance}}", str(item.get("relevance_score", 0)))
-            .replace("{{content}}", content)
-            .replace("{{link}}", item.get("link", "#"))
+            .replace("{{title}}", title)
+            .replace("{{source}}", source)
+            .replace("{{relevance}}", relevance)
+            .replace("{{content}}", content_escaped)
+            .replace("{{link}}", link)
             .replace("{{tags}}", tags_html))
 
         items_html.append(item_html)
 
+    date_escaped = html.escape(date_str)
+    total = str(news_data.get("total_filtered", 0))
+
     return (HTML_TEMPLATE
-        .replace("{{date}}", date_str)
-        .replace("{{total}}", str(news_data.get("total_filtered", 0)))
+        .replace("{{date}}", date_escaped)
+        .replace("{{total}}", total)
         .replace("{{news_items}}", "".join(items_html)))
 
 
