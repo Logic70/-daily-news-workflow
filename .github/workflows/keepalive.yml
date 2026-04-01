@@ -1,0 +1,27 @@
+# Keep Alive Workflow
+# 防止 GitHub 自动暂停因 60 天无活动而暂停 scheduled workflows
+# https://docs.github.com/en/actions/managing-workflow-runs/disabling-and-enabling-a-workflow
+
+name: Keep Alive
+
+on:
+  schedule:
+    # 每周日 UTC 00:00 运行
+    - cron: '0 0 * * 0'
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prevent workflow suspension
+        run: |
+          echo "✓ Keepalive ping at $(date)"
+          echo "✓ This prevents scheduled workflows from being auto-disabled"
+
+      - name: Log repository activity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Default branch: ${{ github.ref_name }}"
+          echo "Workflow will remain active"

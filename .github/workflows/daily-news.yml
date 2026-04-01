@@ -4,10 +4,12 @@ on:
   schedule:
     # 每天 UTC 01:00 运行（北京时间 09:00）
     - cron: '0 1 * * *'
+    # 每周日 UTC 00:00 额外运行（保活机制，防止60天无活动被暂停）
+    - cron: '0 0 * * 0'
   workflow_dispatch:
     inputs:
       date:
-        description: '指定日期 (YYYY-MM-DD)'
+        description: '指定日期 (YYYY-MM-DD)，留空为今天'
         required: false
         default: ''
   push:
