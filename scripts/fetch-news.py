@@ -9,19 +9,41 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
+
+def load_config():
+    """从 config/news-sources.json 加载配置"""
+    config_path = Path(__file__).parent.parent / "config" / "news-sources.json"
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"⚠ 无法加载配置文件: {e}，使用默认配置")
+        return None
+
+
+# 加载全局配置
+CONFIG = load_config()
+
+
 # RSS收集器
 class RSSCollector:
     """从RSS源收集新闻"""
 
-    SOURCES = [
-        {"name": "TechCrunch", "url": "https://techcrunch.com/feed/"},
-        {"name": "The Verge", "url": "https://www.theverge.com/rss/index.xml"},
-        {"name": "36氪", "url": "https://36kr.com/feed"},
-    ]
-
-    def __init__(self):
+    def __init__(self, config=None):
         self.items = []
         self.errors = []
+        self.config = config or CONFIG
+
+        # 从配置加载源，如果配置不存在则使用默认
+        if self.config and "sources" in self.config:
+            self.sources = self.config["sources"].get("rss", [])
+        else:
+            # 默认源
+            self.sources = [
+                {"name": "TechCrunch", "url": "https://techcrunch.com/feed/", "max_items": 10},
+                {"name": "The Verge", "url": "https://www.theverge.com/rss/index.xml", "max_items": 10},
+                {"name": "36氪", "url": "https://36kr.com/feed", "max_items": 10},
+            ]
 
     def collect(self, max_per_source=10):
         """从所有RSS源收集新闻"""
@@ -32,10 +54,12 @@ class RSSCollector:
             self.errors.append({"source": "all", "error": "feedparser未安装"})
             return self.items
 
-        for source in self.SOURCES:
+        # 如果配置中有 max_items，优先使用
+        for source in self.sources:
             try:
+                max_items = source.get("max_items", max_per_source)
                 feed = feedparser.parse(source["url"])
-                for entry in feed.entries[:max_per_source]:
+                for entry in feed.entries[:max_items]:
                     self.items.append({
                         "title": entry.get("title", ""),
                         "description": entry.get("summary", entry.get("description", "")),
@@ -107,26 +131,44 @@ class APICollector:
 class ContentFilter:
     """根据关键实体筛选新闻"""
 
-    KEY_ENTITIES = {
-        "companies": [
-            "Apple", "Microsoft", "Google", "Amazon", "Meta", "Tesla", "NVIDIA",
-            "OpenAI", "Anthropic", "字节跳动", "阿里巴巴", "腾讯", "华为"
-        ],
-        "people": [
-            "Elon Musk", "Satya Nadella", "Tim Cook", "Sundar Pichai",
-            "Sam Altman"
-        ],
-        "technologies": [
-            "AI", "人工智能", "LLM", "大模型", "ChatGPT", "Claude"
-        ]
-    }
-
-    def __init__(self, items):
+    def __init__(self, items, config=None):
         self.items = items
+        self.config = config or CONFIG
 
-    def filter(self, max_output=20, min_relevance=0.3):
+        # 从配置加载关键实体和评分权重
+        if self.config and "filtering" in self.config:
+            filtering = self.config["filtering"]
+            self.key_entities = filtering.get("key_entities", {})
+            self.scoring = filtering.get("scoring", {})
+            self.max_output = filtering.get("max_output", 20)
+            self.min_relevance = filtering.get("min_relevance", 0.3)
+        else:
+            # 默认配置
+            self.key_entities = {
+                "companies": [
+                    "Apple", "Microsoft", "Google", "Amazon", "Meta", "Tesla", "NVIDIA",
+                    "OpenAI", "Anthropic", "字节跳动", "阿里巴巴", "腾讯", "华为"
+                ],
+                "people": [
+                    "Elon Musk", "Satya Nadella", "Tim Cook", "Sundar Pichai",
+                    "Sam Altman"
+                ],
+                "technologies": [
+                    "AI", "人工智能", "LLM", "大模型", "ChatGPT", "Claude"
+                ]
+            }
+            self.scoring = {"title_entity": 0.4, "content_entity": 0.2}
+            self.max_output = 20
+            self.min_relevance = 0.3
+
+    def filter(self, max_output=None, min_relevance=None):
         """筛选新闻并计算相关性分数"""
+        max_output = max_output or self.max_output
+        min_relevance = min_relevance or self.min_relevance
         filtered = []
+
+        title_score = self.scoring.get("title_entity", 0.4)
+        content_score = self.scoring.get("content_entity", 0.2)
 
         for item in self.items:
             title = item.get("title", "")
@@ -137,23 +179,23 @@ class ContentFilter:
             score = 0.0
             entities_found = []
 
-            # 标题提及 +0.4
-            for entity in self.KEY_ENTITIES["companies"]:
+            # 标题提及 +title_score
+            for entity in self.key_entities.get("companies", []):
                 if entity in title:
-                    score += 0.4
+                    score += title_score
                     entities_found.append(entity)
                     break
 
             # 正文提及
             body_matches = 0
-            for category in self.KEY_ENTITIES.values():
+            for category in self.key_entities.values():
                 for entity in category:
                     if entity in content:
                         body_matches += 1
                         if entity not in entities_found:
                             entities_found.append(entity)
 
-            score += min(body_matches * 0.2, 0.4)
+            score += min(body_matches * content_score, 0.4)
 
             if score >= min_relevance:
                 item["relevance_score"] = round(score, 2)
@@ -257,7 +299,7 @@ class GitHubTrendingCollector:
                             "published": datetime.now().isoformat(),
                             "source": "GitHub Trending"
                         })
-                except:
+                except Exception:
                     continue
         except Exception as e:
             print(f"  ⚠ GitHub Trending 获取失败: {e}")
@@ -296,7 +338,7 @@ class HuggingFaceCollector:
                         "published": datetime.now().isoformat(),
                         "source": "HuggingFace"
                     })
-                except:
+                except Exception:
                     continue
         except Exception as e:
             print(f"  ⚠ HuggingFace 获取失败: {e}")

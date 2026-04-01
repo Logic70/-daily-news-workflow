@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-def generate_rss(news_data, date_str, base_url="https://yourusername.github.io/daily-news-workflow"):
+def generate_rss(news_data, date_str, base_url="https://Logic70.github.io/-daily-news-workflow"):
     """生成 RSS 2.0"""
     items_xml = []
 

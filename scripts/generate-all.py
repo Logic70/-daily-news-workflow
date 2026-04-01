@@ -180,7 +180,6 @@ def main():
     print(f"\n✓ 全部生成完成")
     print(f"  输出目录: {output_dir}")
     return 0
-    return 0
 
 
 if __name__ == "__main__":
